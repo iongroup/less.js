@@ -823,15 +823,14 @@ function () {
     this.nodeVisible = undefined;
     this.rootNode = null;
     this.parsed = null;
-    var self = this;
     Object.defineProperty(this, 'currentFileInfo', {
       get: function get() {
-        return self.fileInfo();
+        return this.fileInfo();
       }
     });
     Object.defineProperty(this, 'index', {
       get: function get() {
-        return self.getIndex();
+        return this.getIndex();
       }
     });
   }
@@ -1638,6 +1637,7 @@ function flattenArray(arr) {
 }
 
 var utils = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     getLocation: getLocation,
     copyArray: copyArray,
     clone: clone,
@@ -4084,7 +4084,7 @@ var Operation =
 function (_Node) {
   _inherits(Operation, _Node);
 
-  function Operation(op, operands, isSpaced) {
+  function Operation(op, operands, isSpaced, currentFileInfo) {
     var _this;
 
     _classCallCheck(this, Operation);
@@ -4093,6 +4093,7 @@ function (_Node) {
     _this.op = op.trim();
     _this.operands = operands;
     _this.isSpaced = isSpaced;
+    _this._fileInfo = currentFileInfo;
     return _this;
   }
 
@@ -5454,13 +5455,14 @@ var Negative =
 function (_Node) {
   _inherits(Negative, _Node);
 
-  function Negative(node) {
+  function Negative(node, currentFileInfo) {
     var _this;
 
     _classCallCheck(this, Negative);
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(Negative).call(this));
     _this.value = node;
+    _this._fileInfo = currentFileInfo;
     return _this;
   }
 
@@ -5474,7 +5476,7 @@ function (_Node) {
     key: "eval",
     value: function _eval(context) {
       if (context.isMathOn()) {
-        return new Operation('*', [new Dimension(-1), this.value]).eval(context);
+        return new Operation('*', [new Dimension(-1), this.value], this.currentFileInfo).eval(context);
       }
 
       return new Negative(this.value.eval(context));
@@ -5629,7 +5631,7 @@ var NamespaceValue =
 function (_Node) {
   _inherits(NamespaceValue, _Node);
 
-  function NamespaceValue(ruleCall, lookups, important, index, fileInfo) {
+  function NamespaceValue(ruleCall, lookups, index, fileInfo) {
     var _this;
 
     _classCallCheck(this, NamespaceValue);
@@ -5637,7 +5639,6 @@ function (_Node) {
     _this = _possibleConstructorReturn(this, _getPrototypeOf(NamespaceValue).call(this));
     _this.value = ruleCall;
     _this.lookups = lookups;
-    _this.important = important;
     _this._index = index;
     _this._fileInfo = fileInfo;
     return _this;
@@ -5729,7 +5730,7 @@ var Definition =
 function (_Ruleset) {
   _inherits(Definition, _Ruleset);
 
-  function Definition(name, params, rules, condition, variadic, frames, visibilityInfo) {
+  function Definition(name, params, rules, condition, variadic, frames, visibilityInfo, currentFileInfo) {
     var _this;
 
     _classCallCheck(this, Definition);
@@ -5742,6 +5743,7 @@ function (_Ruleset) {
     _this.variadic = variadic;
     _this.arity = params.length;
     _this.rules = rules;
+    _this._fileInfo = currentFileInfo;
     _this._lookups = {};
     var optionalParameters = [];
     _this.required = params.reduce(function (count, p) {
@@ -5809,7 +5811,7 @@ function (_Ruleset) {
             for (j = 0; j < params.length; j++) {
               if (!evaldArguments[j] && name === params[j].name) {
                 evaldArguments[j] = arg.value.eval(context);
-                frame.prependRule(new Declaration(name, arg.value.eval(context)));
+                frame.prependRule(new Declaration(name, arg.value.eval(context), false, false, undefined, this.currentFileInfo));
                 isNamedFound = true;
                 break;
               }
@@ -5846,7 +5848,7 @@ function (_Ruleset) {
               varargs.push(args[j].value.eval(context));
             }
 
-            frame.prependRule(new Declaration(name, new Expression(varargs).eval(context)));
+            frame.prependRule(new Declaration(name, new Expression(varargs).eval(context), false, false, undefined, this.currentFileInfo));
           } else {
             val = arg && arg.value;
 
@@ -5867,7 +5869,7 @@ function (_Ruleset) {
               };
             }
 
-            frame.prependRule(new Declaration(name, val));
+            frame.prependRule(new Declaration(name, val, false, false, undefined, this.currentFileInfo));
             evaldArguments[i] = val;
           }
         }
@@ -5899,7 +5901,7 @@ function (_Ruleset) {
   }, {
     key: "eval",
     value: function _eval(context) {
-      return new Definition(this.name, this.params, this.rules, this.condition, this.variadic, this.frames || copyArray(context.frames));
+      return new Definition(this.name, this.params, this.rules, this.condition, this.variadic, this.frames || copyArray(context.frames), undefined, this.currentFileInfo);
     }
   }, {
     key: "evalCall",
@@ -5909,7 +5911,7 @@ function (_Ruleset) {
       var frame = this.evalParams(context, new contexts.Eval(context, mixinFrames), args, _arguments);
       var rules;
       var ruleset;
-      frame.prependRule(new Declaration('@arguments', new Expression(_arguments).eval(context)));
+      frame.prependRule(new Declaration('@arguments', new Expression(_arguments).eval(context), false, false, undefined, this.currentFileInfo));
       rules = copyArray(this.rules);
       ruleset = new Ruleset(null, rules);
       ruleset.originalRuleset = this;
@@ -6658,8 +6660,16 @@ function () {
         }
       }
 
-      if (visitArgs.visitDeeper && node && node.accept) {
-        node.accept(this);
+      if (visitArgs.visitDeeper && node) {
+        if (node.length) {
+          for (var i = 0, cnt = node.length; i < cnt; i++) {
+            if (node[i].accept) {
+              node[i].accept(this);
+            }
+          }
+        } else if (node.accept) {
+          node.accept(this);
+        }
       }
 
       if (funcOut != _noop) {
@@ -7922,7 +7932,7 @@ ToCSSVisitor.prototype = {
 
       if (isRoot && ruleNode instanceof tree.Declaration && !ruleNode.variable) {
         throw {
-          message: 'Properties must be inside selector blocks. They cannot be in the root',
+          message: `Property '${ruleNode.name}' must be inside selector blocks. They cannot be in the root`,
           index: ruleNode.getIndex(),
           filename: ruleNode.fileInfo() && ruleNode.fileInfo().filename
         };
@@ -8504,8 +8514,6 @@ var getParserInput = (function () {
           }
 
           return [startChar, str];
-
-        default:
       }
     }
 
@@ -9057,7 +9065,7 @@ var Parser = function Parser(context, imports, fileInfo) {
             continue;
           }
 
-          node = mixin.definition() || this.declaration() || this.ruleset() || mixin.call(false, false) || this.variableCall() || this.entities.call() || this.atrule();
+          node = mixin.definition() || this.declaration() || mixin.call(false, false) || this.ruleset() || this.variableCall() || this.entities.call() || this.atrule();
 
           if (node) {
             root.push(node);
@@ -9486,7 +9494,6 @@ var Parser = function Parser(context, imports, fileInfo) {
       //
       variableCall: function variableCall(parsedName) {
         var lookups;
-        var important;
         var i = parserInput.i;
         var inValue = !!parsedName;
         var name = parsedName;
@@ -9504,10 +9511,6 @@ var Parser = function Parser(context, imports, fileInfo) {
             name = name[1];
           }
 
-          if (lookups && parsers.important()) {
-            important = true;
-          }
-
           var call = new tree.VariableCall(name, i, fileInfo);
 
           if (!inValue && parsers.end()) {
@@ -9515,7 +9518,7 @@ var Parser = function Parser(context, imports, fileInfo) {
             return call;
           } else {
             parserInput.forget();
-            return new tree.NamespaceValue(call, lookups, important, i, fileInfo);
+            return new tree.NamespaceValue(call, lookups, i, fileInfo);
           }
         }
 
@@ -9651,7 +9654,7 @@ var Parser = function Parser(context, imports, fileInfo) {
               var mixin = new tree.mixin.Call(elements, args, index, fileInfo, !lookups && important);
 
               if (lookups) {
-                return new tree.NamespaceValue(mixin, lookups, important);
+                return new tree.NamespaceValue(mixin, lookups);
               } else {
                 return mixin;
               }
@@ -9905,12 +9908,12 @@ var Parser = function Parser(context, imports, fileInfo) {
 
             if (ruleset) {
               parserInput.forget();
-              return new tree.mixin.Definition(name, params, ruleset, cond, variadic);
+              return new tree.mixin.Definition(name, params, ruleset, cond, variadic, undefined, undefined, fileInfo);
             } else {
               parserInput.restore();
             }
           } else {
-            parserInput.forget();
+            parserInput.restore();
           }
         },
         ruleLookups: function ruleLookups() {
@@ -10249,7 +10252,7 @@ var Parser = function Parser(context, imports, fileInfo) {
           parserInput.forget();
 
           if (params) {
-            return new tree.mixin.Definition(null, params, blockRuleset, null, variadic);
+            return new tree.mixin.Definition(null, params, blockRuleset, null, variadic, undefined, undefined, fileInfo);
           }
 
           return new tree.DetachedRuleset(blockRuleset);
@@ -10904,7 +10907,7 @@ var Parser = function Parser(context, imports, fileInfo) {
             parserInput.forget();
             m.parensInOp = true;
             a.parensInOp = true;
-            operation = new tree.Operation(op, [operation || m, a], isSpaced);
+            operation = new tree.Operation(op, [operation || m, a], isSpaced, fileInfo);
             isSpaced = parserInput.isWhitespace(-1);
           }
 
@@ -10937,7 +10940,7 @@ var Parser = function Parser(context, imports, fileInfo) {
 
             m.parensInOp = true;
             a.parensInOp = true;
-            operation = new tree.Operation(op, [operation || m, a], isSpaced);
+            operation = new tree.Operation(op, [operation || m, a], isSpaced, fileInfo);
             isSpaced = parserInput.isWhitespace(-1);
           }
 
@@ -11168,7 +11171,7 @@ var Parser = function Parser(context, imports, fileInfo) {
 
         if (negate) {
           o.parensInOp = true;
-          o = new tree.Negative(o);
+          o = new tree.Negative(o, fileInfo);
         }
 
         return o;

@@ -2,7 +2,7 @@
  * Less - Leaner CSS v3.10.3
  * http://lesscss.org
  * 
- * Copyright (c) 2009-2019, Alexis Sellier <self@cloudhead.net>
+ * Copyright (c) 2009-2020, Alexis Sellier <self@cloudhead.net>
  * Licensed under the Apache-2.0 License.
  *
  * @license Apache-2.0
@@ -12,7 +12,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.less = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
   // Export a new default each time
   var defaultOptions = (function () {
@@ -161,11 +161,17 @@
       }
     },
     currentScript: function currentScript(window) {
-      var document = window.document;
-      return document.currentScript || function () {
-        var scripts = document.getElementsByTagName('script');
-        return scripts[scripts.length - 1];
-      }();
+      if (window) {
+        var document = window.document;
+        return document.currentScript || function () {
+          var scripts = document.getElementsByTagName('script');
+          return scripts[scripts.length - 1];
+        }();
+      } else {
+        return {
+          dataset: {}
+        };
+      }
     }
   };
 
@@ -174,7 +180,7 @@
     addDataAttr(options, browser.currentScript(window));
 
     if (options.isFileProtocol === undefined) {
-      options.isFileProtocol = /^(file|(chrome|safari)(-extension)?|resource|qrc|app):/.test(window.location.protocol);
+      options.isFileProtocol = typeof window !== 'undefined' && /^(file|(chrome|safari)(-extension)?|resource|qrc|app):/.test(window.location.protocol);
     } // Load styles asynchronously (default: false)
     //
     // This is set to `false` by default, so that the body
@@ -187,8 +193,8 @@
     options.fileAsync = options.fileAsync || false; // Interval between watch polls
 
     options.poll = options.poll || (options.isFileProtocol ? 1000 : 1500);
-    options.env = options.env || (window.location.hostname == '127.0.0.1' || window.location.hostname == '0.0.0.0' || window.location.hostname == 'localhost' || window.location.port && window.location.port.length > 0 || options.isFileProtocol ? 'development' : 'production');
-    var dumpLineNumbers = /!dumpLineNumbers:(comments|mediaquery|all)/.exec(window.location.hash);
+    options.env = options.env || (typeof window !== 'undefined' && (window.location.hostname == '127.0.0.1' || window.location.hostname == '0.0.0.0' || window.location.hostname == 'localhost' || window.location.port && window.location.port.length > 0) || options.isFileProtocol ? 'development' : 'production');
+    var dumpLineNumbers = typeof window !== 'undefined' && /!dumpLineNumbers:(comments|mediaquery|all)/.exec(window.location.hash);
 
     if (dumpLineNumbers) {
       options.dumpLineNumbers = dumpLineNumbers[1];
@@ -198,7 +204,7 @@
       options.useFileCache = true;
     }
 
-    if (options.onReady === undefined) {
+    if (typeof window !== 'undefined' && typeof window.document !== "undefined" && !window.document.isWebWorker && options.onReady === undefined) {
       options.onReady = true;
     }
 
@@ -529,15 +535,14 @@
       this.nodeVisible = undefined;
       this.rootNode = null;
       this.parsed = null;
-      var self = this;
       Object.defineProperty(this, 'currentFileInfo', {
         get: function get() {
-          return self.fileInfo();
+          return this.fileInfo();
         }
       });
       Object.defineProperty(this, 'index', {
         get: function get() {
-          return self.getIndex();
+          return this.getIndex();
         }
       });
     }
@@ -1607,6 +1612,7 @@
   }
 
   var utils = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     getLocation: getLocation,
     copyArray: copyArray,
     clone: clone,
@@ -4053,7 +4059,7 @@
   function (_Node) {
     _inherits(Operation, _Node);
 
-    function Operation(op, operands, isSpaced) {
+    function Operation(op, operands, isSpaced, currentFileInfo) {
       var _this;
 
       _classCallCheck(this, Operation);
@@ -4062,6 +4068,7 @@
       _this.op = op.trim();
       _this.operands = operands;
       _this.isSpaced = isSpaced;
+      _this._fileInfo = currentFileInfo;
       return _this;
     }
 
@@ -5424,13 +5431,14 @@
   function (_Node) {
     _inherits(Negative, _Node);
 
-    function Negative(node) {
+    function Negative(node, currentFileInfo) {
       var _this;
 
       _classCallCheck(this, Negative);
 
       _this = _possibleConstructorReturn(this, _getPrototypeOf(Negative).call(this));
       _this.value = node;
+      _this._fileInfo = currentFileInfo;
       return _this;
     }
 
@@ -5444,7 +5452,7 @@
       key: "eval",
       value: function _eval(context) {
         if (context.isMathOn()) {
-          return new Operation('*', [new Dimension(-1), this.value]).eval(context);
+          return new Operation('*', [new Dimension(-1), this.value], this.currentFileInfo).eval(context);
         }
 
         return new Negative(this.value.eval(context));
@@ -5599,7 +5607,7 @@
   function (_Node) {
     _inherits(NamespaceValue, _Node);
 
-    function NamespaceValue(ruleCall, lookups, important, index, fileInfo) {
+    function NamespaceValue(ruleCall, lookups, index, fileInfo) {
       var _this;
 
       _classCallCheck(this, NamespaceValue);
@@ -5607,7 +5615,6 @@
       _this = _possibleConstructorReturn(this, _getPrototypeOf(NamespaceValue).call(this));
       _this.value = ruleCall;
       _this.lookups = lookups;
-      _this.important = important;
       _this._index = index;
       _this._fileInfo = fileInfo;
       return _this;
@@ -5699,7 +5706,7 @@
   function (_Ruleset) {
     _inherits(Definition, _Ruleset);
 
-    function Definition(name, params, rules, condition, variadic, frames, visibilityInfo) {
+    function Definition(name, params, rules, condition, variadic, frames, visibilityInfo, currentFileInfo) {
       var _this;
 
       _classCallCheck(this, Definition);
@@ -5712,6 +5719,7 @@
       _this.variadic = variadic;
       _this.arity = params.length;
       _this.rules = rules;
+      _this._fileInfo = currentFileInfo;
       _this._lookups = {};
       var optionalParameters = [];
       _this.required = params.reduce(function (count, p) {
@@ -5779,7 +5787,7 @@
               for (j = 0; j < params.length; j++) {
                 if (!evaldArguments[j] && name === params[j].name) {
                   evaldArguments[j] = arg.value.eval(context);
-                  frame.prependRule(new Declaration(name, arg.value.eval(context)));
+                  frame.prependRule(new Declaration(name, arg.value.eval(context), false, false, undefined, this.currentFileInfo));
                   isNamedFound = true;
                   break;
                 }
@@ -5816,7 +5824,7 @@
                 varargs.push(args[j].value.eval(context));
               }
 
-              frame.prependRule(new Declaration(name, new Expression(varargs).eval(context)));
+              frame.prependRule(new Declaration(name, new Expression(varargs).eval(context), false, false, undefined, this.currentFileInfo));
             } else {
               val = arg && arg.value;
 
@@ -5837,7 +5845,7 @@
                 };
               }
 
-              frame.prependRule(new Declaration(name, val));
+              frame.prependRule(new Declaration(name, val, false, false, undefined, this.currentFileInfo));
               evaldArguments[i] = val;
             }
           }
@@ -5869,7 +5877,7 @@
     }, {
       key: "eval",
       value: function _eval(context) {
-        return new Definition(this.name, this.params, this.rules, this.condition, this.variadic, this.frames || copyArray(context.frames));
+        return new Definition(this.name, this.params, this.rules, this.condition, this.variadic, this.frames || copyArray(context.frames), undefined, this.currentFileInfo);
       }
     }, {
       key: "evalCall",
@@ -5879,7 +5887,7 @@
         var frame = this.evalParams(context, new contexts.Eval(context, mixinFrames), args, _arguments);
         var rules;
         var ruleset;
-        frame.prependRule(new Declaration('@arguments', new Expression(_arguments).eval(context)));
+        frame.prependRule(new Declaration('@arguments', new Expression(_arguments).eval(context), false, false, undefined, this.currentFileInfo));
         rules = copyArray(this.rules);
         ruleset = new Ruleset(null, rules);
         ruleset.originalRuleset = this;
@@ -6827,8 +6835,16 @@
           }
         }
 
-        if (visitArgs.visitDeeper && node && node.accept) {
-          node.accept(this);
+        if (visitArgs.visitDeeper && node) {
+          if (node.length) {
+            for (var i = 0, cnt = node.length; i < cnt; i++) {
+              if (node[i].accept) {
+                node[i].accept(this);
+              }
+            }
+          } else if (node.accept) {
+            node.accept(this);
+          }
         }
 
         if (funcOut != _noop) {
@@ -8091,7 +8107,7 @@
 
         if (isRoot && ruleNode instanceof tree.Declaration && !ruleNode.variable) {
           throw {
-            message: 'Properties must be inside selector blocks. They cannot be in the root',
+            message: "Property '".concat(ruleNode.name, "' must be inside selector blocks. They cannot be in the root"),
             index: ruleNode.getIndex(),
             filename: ruleNode.fileInfo() && ruleNode.fileInfo().filename
           };
@@ -8673,8 +8689,6 @@
             }
 
             return [startChar, str];
-
-          default:
         }
       }
 
@@ -9226,7 +9240,7 @@
               continue;
             }
 
-            node = mixin.definition() || this.declaration() || this.ruleset() || mixin.call(false, false) || this.variableCall() || this.entities.call() || this.atrule();
+            node = mixin.definition() || this.declaration() || mixin.call(false, false) || this.ruleset() || this.variableCall() || this.entities.call() || this.atrule();
 
             if (node) {
               root.push(node);
@@ -9655,7 +9669,6 @@
         //
         variableCall: function variableCall(parsedName) {
           var lookups;
-          var important;
           var i = parserInput.i;
           var inValue = !!parsedName;
           var name = parsedName;
@@ -9673,10 +9686,6 @@
               name = name[1];
             }
 
-            if (lookups && parsers.important()) {
-              important = true;
-            }
-
             var call = new tree.VariableCall(name, i, fileInfo);
 
             if (!inValue && parsers.end()) {
@@ -9684,7 +9693,7 @@
               return call;
             } else {
               parserInput.forget();
-              return new tree.NamespaceValue(call, lookups, important, i, fileInfo);
+              return new tree.NamespaceValue(call, lookups, i, fileInfo);
             }
           }
 
@@ -9820,7 +9829,7 @@
                 var mixin = new tree.mixin.Call(elements, args, index, fileInfo, !lookups && important);
 
                 if (lookups) {
-                  return new tree.NamespaceValue(mixin, lookups, important);
+                  return new tree.NamespaceValue(mixin, lookups);
                 } else {
                   return mixin;
                 }
@@ -10074,12 +10083,12 @@
 
               if (ruleset) {
                 parserInput.forget();
-                return new tree.mixin.Definition(name, params, ruleset, cond, variadic);
+                return new tree.mixin.Definition(name, params, ruleset, cond, variadic, undefined, undefined, fileInfo);
               } else {
                 parserInput.restore();
               }
             } else {
-              parserInput.forget();
+              parserInput.restore();
             }
           },
           ruleLookups: function ruleLookups() {
@@ -10418,7 +10427,7 @@
             parserInput.forget();
 
             if (params) {
-              return new tree.mixin.Definition(null, params, blockRuleset, null, variadic);
+              return new tree.mixin.Definition(null, params, blockRuleset, null, variadic, undefined, undefined, fileInfo);
             }
 
             return new tree.DetachedRuleset(blockRuleset);
@@ -11073,7 +11082,7 @@
               parserInput.forget();
               m.parensInOp = true;
               a.parensInOp = true;
-              operation = new tree.Operation(op, [operation || m, a], isSpaced);
+              operation = new tree.Operation(op, [operation || m, a], isSpaced, fileInfo);
               isSpaced = parserInput.isWhitespace(-1);
             }
 
@@ -11106,7 +11115,7 @@
 
               m.parensInOp = true;
               a.parensInOp = true;
-              operation = new tree.Operation(op, [operation || m, a], isSpaced);
+              operation = new tree.Operation(op, [operation || m, a], isSpaced, fileInfo);
               isSpaced = parserInput.isWhitespace(-1);
             }
 
@@ -11337,7 +11346,7 @@
 
           if (negate) {
             o.parensInOp = true;
-            o = new tree.Negative(o);
+            o = new tree.Negative(o, fileInfo);
           }
 
           return o;
@@ -13618,6 +13627,20 @@
     }, {
       key: "doXHR",
       value: function doXHR(url, type, callback, errback) {
+        // If in Webworker always use absolute hrefs (it can be loaded as headless blobs)
+        var href = typeof window !== 'undefined' ? window.location.href : _window_href;
+
+        if (href && url.indexOf('://') < 0) {
+          // Extract the scheme part
+          var hostPart = this.extractUrlParts(href).hostPart;
+
+          if (hostPart[hostPart.length - 1] === '/' && url[0] === '/') {
+            url = url.substr(1);
+          }
+
+          url = hostPart + url;
+        }
+
         var xhr = new XMLHttpRequest();
         var async = options.isFileProtocol ? options.fileAsync : true;
 
@@ -13677,7 +13700,7 @@
         options = options || {}; // sheet may be set to the stylesheet for the initial load or a collection of properties including
         // some context variables for imports
 
-        var hrefParts = this.extractUrlParts(filename, window.location.href);
+        var hrefParts = this.extractUrlParts(filename, typeof window !== 'undefined' ? window.location.href : _window_href);
         var href = hrefParts.url;
         var self = this;
         return new Promise(function (resolve, reject) {
@@ -13925,7 +13948,7 @@
 
     if (options.env !== 'development') {
       try {
-        cache = typeof window.localStorage === 'undefined' ? null : window.localStorage;
+        cache = !window || typeof window.localStorage === 'undefined' ? null : window.localStorage;
       } catch (_) {}
     }
 
@@ -13992,7 +14015,7 @@
 
   //
   var root = (function (window, options) {
-    var document = window.document;
+    var document = window && window.document;
     var less = lessRoot();
     less.options = options;
     var environment = less.environment;
@@ -14034,6 +14057,10 @@
     }
 
     function loadStyles(modifyVars) {
+      if (typeof document === 'undefined') {
+        return;
+      }
+
       var styles = document.getElementsByTagName('style');
       var style;
 
@@ -14167,7 +14194,7 @@
 
 
     less.registerStylesheetsImmediately = function () {
-      var links = document.getElementsByTagName('link');
+      var links = typeof document !== 'undefined' ? document.getElementsByTagName('link') : [];
       less.sheets = [];
 
       for (var i = 0; i < links.length; i++) {
@@ -14270,7 +14297,7 @@
    */
   var options$1 = defaultOptions();
 
-  if (window.less) {
+  if (typeof window !== 'undefined' && window.less) {
     for (var key in window.less) {
       if (window.less.hasOwnProperty(key)) {
         options$1[key] = window.less[key];
@@ -14281,12 +14308,16 @@
   addDefaultOptions(window, options$1);
   options$1.plugins = options$1.plugins || [];
 
-  if (window.LESS_PLUGINS) {
+  if (typeof window !== 'undefined' && window.LESS_PLUGINS) {
     options$1.plugins = options$1.plugins.concat(window.LESS_PLUGINS);
   }
 
   var less = root(window, options$1);
-  window.less = less;
+
+  if (typeof window !== 'undefined') {
+    window.less = less;
+  }
+
   var css;
   var head;
   var style; // Always restore page visibility
@@ -14302,7 +14333,7 @@
   }
 
   if (options$1.onReady) {
-    if (/!watch/.test(window.location.hash)) {
+    if (typeof window !== 'undefined' && /!watch/.test(window.location.hash)) {
       less.watch();
     } // Simulate synchronous stylesheet loading by hiding page rendering
 
@@ -14328,4 +14359,4 @@
 
   return less;
 
-}));
+})));
