@@ -1638,6 +1638,7 @@ function flattenArray(arr) {
 }
 
 var utils = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     getLocation: getLocation,
     copyArray: copyArray,
     clone: clone,
@@ -5629,7 +5630,7 @@ var NamespaceValue =
 function (_Node) {
   _inherits(NamespaceValue, _Node);
 
-  function NamespaceValue(ruleCall, lookups, important, index, fileInfo) {
+  function NamespaceValue(ruleCall, lookups, index, fileInfo) {
     var _this;
 
     _classCallCheck(this, NamespaceValue);
@@ -5637,7 +5638,6 @@ function (_Node) {
     _this = _possibleConstructorReturn(this, _getPrototypeOf(NamespaceValue).call(this));
     _this.value = ruleCall;
     _this.lookups = lookups;
-    _this.important = important;
     _this._index = index;
     _this._fileInfo = fileInfo;
     return _this;
@@ -6658,8 +6658,16 @@ function () {
         }
       }
 
-      if (visitArgs.visitDeeper && node && node.accept) {
-        node.accept(this);
+      if (visitArgs.visitDeeper && node) {
+        if (node.length) {
+          for (var i = 0, cnt = node.length; i < cnt; i++) {
+            if (node[i].accept) {
+              node[i].accept(this);
+            }
+          }
+        } else if (node.accept) {
+          node.accept(this);
+        }
       }
 
       if (funcOut != _noop) {
@@ -7922,7 +7930,7 @@ ToCSSVisitor.prototype = {
 
       if (isRoot && ruleNode instanceof tree.Declaration && !ruleNode.variable) {
         throw {
-          message: 'Properties must be inside selector blocks. They cannot be in the root',
+          message: `Property '${ruleNode.name}' must be inside selector blocks. They cannot be in the root`,
           index: ruleNode.getIndex(),
           filename: ruleNode.fileInfo() && ruleNode.fileInfo().filename
         };
@@ -8504,8 +8512,6 @@ var getParserInput = (function () {
           }
 
           return [startChar, str];
-
-        default:
       }
     }
 
@@ -9057,7 +9063,7 @@ var Parser = function Parser(context, imports, fileInfo) {
             continue;
           }
 
-          node = mixin.definition() || this.declaration() || this.ruleset() || mixin.call(false, false) || this.variableCall() || this.entities.call() || this.atrule();
+          node = mixin.definition() || this.declaration() || mixin.call(false, false) || this.ruleset() || this.variableCall() || this.entities.call() || this.atrule();
 
           if (node) {
             root.push(node);
@@ -9486,7 +9492,6 @@ var Parser = function Parser(context, imports, fileInfo) {
       //
       variableCall: function variableCall(parsedName) {
         var lookups;
-        var important;
         var i = parserInput.i;
         var inValue = !!parsedName;
         var name = parsedName;
@@ -9504,10 +9509,6 @@ var Parser = function Parser(context, imports, fileInfo) {
             name = name[1];
           }
 
-          if (lookups && parsers.important()) {
-            important = true;
-          }
-
           var call = new tree.VariableCall(name, i, fileInfo);
 
           if (!inValue && parsers.end()) {
@@ -9515,7 +9516,7 @@ var Parser = function Parser(context, imports, fileInfo) {
             return call;
           } else {
             parserInput.forget();
-            return new tree.NamespaceValue(call, lookups, important, i, fileInfo);
+            return new tree.NamespaceValue(call, lookups, i, fileInfo);
           }
         }
 
@@ -9651,7 +9652,7 @@ var Parser = function Parser(context, imports, fileInfo) {
               var mixin = new tree.mixin.Call(elements, args, index, fileInfo, !lookups && important);
 
               if (lookups) {
-                return new tree.NamespaceValue(mixin, lookups, important);
+                return new tree.NamespaceValue(mixin, lookups);
               } else {
                 return mixin;
               }
@@ -9910,7 +9911,7 @@ var Parser = function Parser(context, imports, fileInfo) {
               parserInput.restore();
             }
           } else {
-            parserInput.forget();
+            parserInput.restore();
           }
         },
         ruleLookups: function ruleLookups() {

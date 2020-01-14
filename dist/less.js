@@ -1,8 +1,8 @@
 /**
- * Less - Leaner CSS v3.10.3
+ * Less - Leaner CSS v3.10.3-ww2
  * http://lesscss.org
  * 
- * Copyright (c) 2009-2019, Alexis Sellier <self@cloudhead.net>
+ * Copyright (c) 2009-2020, Alexis Sellier <self@cloudhead.net>
  * Licensed under the Apache-2.0 License.
  *
  * @license Apache-2.0
@@ -12,7 +12,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.less = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
   // Export a new default each time
   var defaultOptions = (function () {
@@ -161,11 +161,17 @@
       }
     },
     currentScript: function currentScript(window) {
-      var document = window.document;
-      return document.currentScript || function () {
-        var scripts = document.getElementsByTagName('script');
-        return scripts[scripts.length - 1];
-      }();
+      if (window) {
+        var document = window.document;
+        return document.currentScript || function () {
+          var scripts = document.getElementsByTagName('script');
+          return scripts[scripts.length - 1];
+        }();
+      } else {
+        return {
+          dataset: {}
+        };
+      }
     }
   };
 
@@ -174,7 +180,7 @@
     addDataAttr(options, browser.currentScript(window));
 
     if (options.isFileProtocol === undefined) {
-      options.isFileProtocol = /^(file|(chrome|safari)(-extension)?|resource|qrc|app):/.test(window.location.protocol);
+      options.isFileProtocol = typeof window !== 'undefined' && /^(file|(chrome|safari)(-extension)?|resource|qrc|app):/.test(window.location.protocol);
     } // Load styles asynchronously (default: false)
     //
     // This is set to `false` by default, so that the body
@@ -187,8 +193,8 @@
     options.fileAsync = options.fileAsync || false; // Interval between watch polls
 
     options.poll = options.poll || (options.isFileProtocol ? 1000 : 1500);
-    options.env = options.env || (window.location.hostname == '127.0.0.1' || window.location.hostname == '0.0.0.0' || window.location.hostname == 'localhost' || window.location.port && window.location.port.length > 0 || options.isFileProtocol ? 'development' : 'production');
-    var dumpLineNumbers = /!dumpLineNumbers:(comments|mediaquery|all)/.exec(window.location.hash);
+    options.env = options.env || (typeof window !== 'undefined' && (window.location.hostname == '127.0.0.1' || window.location.hostname == '0.0.0.0' || window.location.hostname == 'localhost' || window.location.port && window.location.port.length > 0) || options.isFileProtocol ? 'development' : 'production');
+    var dumpLineNumbers = typeof window !== 'undefined' && /!dumpLineNumbers:(comments|mediaquery|all)/.exec(window.location.hash);
 
     if (dumpLineNumbers) {
       options.dumpLineNumbers = dumpLineNumbers[1];
@@ -198,7 +204,7 @@
       options.useFileCache = true;
     }
 
-    if (options.onReady === undefined) {
+    if (typeof window !== 'undefined' && typeof window.document !== "undefined" && !window.document.isWebWorker && options.onReady === undefined) {
       options.onReady = true;
     }
 
@@ -1607,6 +1613,7 @@
   }
 
   var utils = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     getLocation: getLocation,
     copyArray: copyArray,
     clone: clone,
@@ -5599,7 +5606,7 @@
   function (_Node) {
     _inherits(NamespaceValue, _Node);
 
-    function NamespaceValue(ruleCall, lookups, important, index, fileInfo) {
+    function NamespaceValue(ruleCall, lookups, index, fileInfo) {
       var _this;
 
       _classCallCheck(this, NamespaceValue);
@@ -5607,7 +5614,6 @@
       _this = _possibleConstructorReturn(this, _getPrototypeOf(NamespaceValue).call(this));
       _this.value = ruleCall;
       _this.lookups = lookups;
-      _this.important = important;
       _this._index = index;
       _this._fileInfo = fileInfo;
       return _this;
@@ -6827,8 +6833,16 @@
           }
         }
 
-        if (visitArgs.visitDeeper && node && node.accept) {
-          node.accept(this);
+        if (visitArgs.visitDeeper && node) {
+          if (node.length) {
+            for (var i = 0, cnt = node.length; i < cnt; i++) {
+              if (node[i].accept) {
+                node[i].accept(this);
+              }
+            }
+          } else if (node.accept) {
+            node.accept(this);
+          }
         }
 
         if (funcOut != _noop) {
@@ -8091,7 +8105,7 @@
 
         if (isRoot && ruleNode instanceof tree.Declaration && !ruleNode.variable) {
           throw {
-            message: 'Properties must be inside selector blocks. They cannot be in the root',
+            message: "Property '".concat(ruleNode.name, "' must be inside selector blocks. They cannot be in the root"),
             index: ruleNode.getIndex(),
             filename: ruleNode.fileInfo() && ruleNode.fileInfo().filename
           };
@@ -8673,8 +8687,6 @@
             }
 
             return [startChar, str];
-
-          default:
         }
       }
 
@@ -9226,7 +9238,7 @@
               continue;
             }
 
-            node = mixin.definition() || this.declaration() || this.ruleset() || mixin.call(false, false) || this.variableCall() || this.entities.call() || this.atrule();
+            node = mixin.definition() || this.declaration() || mixin.call(false, false) || this.ruleset() || this.variableCall() || this.entities.call() || this.atrule();
 
             if (node) {
               root.push(node);
@@ -9655,7 +9667,6 @@
         //
         variableCall: function variableCall(parsedName) {
           var lookups;
-          var important;
           var i = parserInput.i;
           var inValue = !!parsedName;
           var name = parsedName;
@@ -9673,10 +9684,6 @@
               name = name[1];
             }
 
-            if (lookups && parsers.important()) {
-              important = true;
-            }
-
             var call = new tree.VariableCall(name, i, fileInfo);
 
             if (!inValue && parsers.end()) {
@@ -9684,7 +9691,7 @@
               return call;
             } else {
               parserInput.forget();
-              return new tree.NamespaceValue(call, lookups, important, i, fileInfo);
+              return new tree.NamespaceValue(call, lookups, i, fileInfo);
             }
           }
 
@@ -9820,7 +9827,7 @@
                 var mixin = new tree.mixin.Call(elements, args, index, fileInfo, !lookups && important);
 
                 if (lookups) {
-                  return new tree.NamespaceValue(mixin, lookups, important);
+                  return new tree.NamespaceValue(mixin, lookups);
                 } else {
                   return mixin;
                 }
@@ -10079,7 +10086,7 @@
                 parserInput.restore();
               }
             } else {
-              parserInput.forget();
+              parserInput.restore();
             }
           },
           ruleLookups: function ruleLookups() {
@@ -13618,6 +13625,20 @@
     }, {
       key: "doXHR",
       value: function doXHR(url, type, callback, errback) {
+        // If in Webworker always use absolute hrefs (it can be loaded as headless blobs)
+        var href = typeof window !== 'undefined' ? window.location.href : _window_href;
+
+        if (href && url.indexOf('://') < 0) {
+          // Extract the scheme part
+          var hostPart = this.extractUrlParts(href).hostPart;
+
+          if (hostPart[hostPart.length - 1] === '/' && url[0] === '/') {
+            url = url.substr(1);
+          }
+
+          url = hostPart + url;
+        }
+
         var xhr = new XMLHttpRequest();
         var async = options.isFileProtocol ? options.fileAsync : true;
 
@@ -13677,7 +13698,7 @@
         options = options || {}; // sheet may be set to the stylesheet for the initial load or a collection of properties including
         // some context variables for imports
 
-        var hrefParts = this.extractUrlParts(filename, window.location.href);
+        var hrefParts = this.extractUrlParts(filename, typeof window !== 'undefined' ? window.location.href : _window_href);
         var href = hrefParts.url;
         var self = this;
         return new Promise(function (resolve, reject) {
@@ -13925,7 +13946,7 @@
 
     if (options.env !== 'development') {
       try {
-        cache = typeof window.localStorage === 'undefined' ? null : window.localStorage;
+        cache = !window || typeof window.localStorage === 'undefined' ? null : window.localStorage;
       } catch (_) {}
     }
 
@@ -13992,7 +14013,7 @@
 
   //
   var root = (function (window, options) {
-    var document = window.document;
+    var document = window && window.document;
     var less = lessRoot();
     less.options = options;
     var environment = less.environment;
@@ -14034,6 +14055,10 @@
     }
 
     function loadStyles(modifyVars) {
+      if (typeof document === 'undefined') {
+        return;
+      }
+
       var styles = document.getElementsByTagName('style');
       var style;
 
@@ -14167,7 +14192,7 @@
 
 
     less.registerStylesheetsImmediately = function () {
-      var links = document.getElementsByTagName('link');
+      var links = typeof document !== 'undefined' ? document.getElementsByTagName('link') : [];
       less.sheets = [];
 
       for (var i = 0; i < links.length; i++) {
@@ -14270,7 +14295,7 @@
    */
   var options$1 = defaultOptions();
 
-  if (window.less) {
+  if (typeof window !== 'undefined' && window.less) {
     for (var key in window.less) {
       if (window.less.hasOwnProperty(key)) {
         options$1[key] = window.less[key];
@@ -14281,12 +14306,16 @@
   addDefaultOptions(window, options$1);
   options$1.plugins = options$1.plugins || [];
 
-  if (window.LESS_PLUGINS) {
+  if (typeof window !== 'undefined' && window.LESS_PLUGINS) {
     options$1.plugins = options$1.plugins.concat(window.LESS_PLUGINS);
   }
 
   var less = root(window, options$1);
-  window.less = less;
+
+  if (typeof window !== 'undefined') {
+    window.less = less;
+  }
+
   var css;
   var head;
   var style; // Always restore page visibility
@@ -14302,7 +14331,7 @@
   }
 
   if (options$1.onReady) {
-    if (/!watch/.test(window.location.hash)) {
+    if (typeof window !== 'undefined' && /!watch/.test(window.location.hash)) {
       less.watch();
     } // Simulate synchronous stylesheet loading by hiding page rendering
 
@@ -14328,4 +14357,4 @@
 
   return less;
 
-}));
+})));
