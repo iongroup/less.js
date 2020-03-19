@@ -1,5 +1,5 @@
 /**
- * Less - Leaner CSS v3.10.3-ww2
+ * Less - Leaner CSS v3.10.3-ww3
  * http://lesscss.org
  * 
  * Copyright (c) 2009-2020, Alexis Sellier <self@cloudhead.net>
@@ -214,6 +214,8 @@
   });
 
   function _typeof(obj) {
+    "@babel/helpers - typeof";
+
     if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
       _typeof = function (obj) {
         return typeof obj;
@@ -524,9 +526,7 @@
     unitConversions: unitConversions
   };
 
-  var Node =
-  /*#__PURE__*/
-  function () {
+  var Node = /*#__PURE__*/function () {
     function Node() {
       _classCallCheck(this, Node);
 
@@ -748,9 +748,7 @@
   // RGB Colors - #ff0014, #eee
   //
 
-  var Color =
-  /*#__PURE__*/
-  function (_Node) {
+  var Color = /*#__PURE__*/function (_Node) {
     _inherits(Color, _Node);
 
     function Color(rgb, a, originalForm) {
@@ -1038,9 +1036,7 @@
     }
   };
 
-  var Paren =
-  /*#__PURE__*/
-  function (_Node) {
+  var Paren = /*#__PURE__*/function (_Node) {
     _inherits(Paren, _Node);
 
     function Paren(node) {
@@ -1078,9 +1074,7 @@
     '|': true
   };
 
-  var Combinator =
-  /*#__PURE__*/
-  function (_Node) {
+  var Combinator = /*#__PURE__*/function (_Node) {
     _inherits(Combinator, _Node);
 
     function Combinator(value) {
@@ -1114,9 +1108,7 @@
 
   Combinator.prototype.type = 'Combinator';
 
-  var Element =
-  /*#__PURE__*/
-  function (_Node) {
+  var Element = /*#__PURE__*/function (_Node) {
     _inherits(Element, _Node);
 
     function Element(combinator, value, isVariable, index, currentFileInfo, visibilityInfo) {
@@ -1476,6 +1468,32 @@
   });
 
   /* jshint proto: true */
+  /**
+   * Polyfilled
+   */
+
+  function objectAssign(target) {
+    var from;
+
+    if (target === null || target === undefined) {
+      throw new TypeError('Object.assign cannot be called with null or undefined');
+    }
+
+    var to = Object(target);
+
+    for (var s = 1; s < arguments.length; s++) {
+      from = Object(arguments[s]);
+
+      for (var key in from) {
+        if (hasOwnProperty.call(from, key)) {
+          to[key] = from[key];
+        }
+      }
+    }
+
+    return to;
+  }
+
   function getLocation(index, inputStream) {
     var n = index + 1;
     var line = null;
@@ -1526,7 +1544,7 @@
 
       newObj._defaults = _defaults;
       var cloned = obj2 ? clone_1(obj2) : {};
-      Object.assign(newObj, _defaults, cloned);
+      objectAssign(newObj, _defaults, cloned);
     }
 
     return newObj;
@@ -1765,9 +1783,7 @@
     return message;
   };
 
-  var Selector =
-  /*#__PURE__*/
-  function (_Node) {
+  var Selector = /*#__PURE__*/function (_Node) {
     _inherits(Selector, _Node);
 
     function Selector(elements, extendList, condition, index, currentFileInfo, visibilityInfo) {
@@ -1934,9 +1950,7 @@
 
   Selector.prototype.type = 'Selector';
 
-  var Value =
-  /*#__PURE__*/
-  function (_Node) {
+  var Value = /*#__PURE__*/function (_Node) {
     _inherits(Value, _Node);
 
     function Value(value) {
@@ -1997,9 +2011,7 @@
 
   Value.prototype.type = 'Value';
 
-  var Keyword =
-  /*#__PURE__*/
-  function (_Node) {
+  var Keyword = /*#__PURE__*/function (_Node) {
     _inherits(Keyword, _Node);
 
     function Keyword(value) {
@@ -2033,9 +2045,7 @@
   Keyword.True = new Keyword('true');
   Keyword.False = new Keyword('false');
 
-  var Anonymous =
-  /*#__PURE__*/
-  function (_Node) {
+  var Anonymous = /*#__PURE__*/function (_Node) {
     _inherits(Anonymous, _Node);
 
     function Anonymous(value, index, currentFileInfo, mapLines, rulesetLike, visibilityInfo) {
@@ -2089,9 +2099,7 @@
 
   var MATH = Math$1;
 
-  var Declaration =
-  /*#__PURE__*/
-  function (_Node) {
+  var Declaration = /*#__PURE__*/function (_Node) {
     _inherits(Declaration, _Node);
 
     function Declaration(name, value, important, merge, index, currentFileInfo, inline, variable) {
@@ -2257,9 +2265,7 @@
     }), "}line{font-family:\\00003").concat(ctx.debugInfo.lineNumber, "}}\n");
   };
 
-  var Comment =
-  /*#__PURE__*/
-  function (_Node) {
+  var Comment = /*#__PURE__*/function (_Node) {
     _inherits(Comment, _Node);
 
     function Comment(value, isLineComment, index, currentFileInfo) {
@@ -2363,9 +2369,7 @@
     return path.charAt(0) === '.';
   }
 
-  contexts.Eval =
-  /*#__PURE__*/
-  function () {
+  contexts.Eval = /*#__PURE__*/function () {
     function _class(options, frames) {
       _classCallCheck(this, _class);
 
@@ -2547,9 +2551,7 @@
     }
   };
 
-  var Ruleset =
-  /*#__PURE__*/
-  function (_Node) {
+  var Ruleset = /*#__PURE__*/function (_Node) {
     _inherits(Ruleset, _Node);
 
     function Ruleset(selectors, rules, strictImports, visibilityInfo) {
@@ -3458,9 +3460,7 @@
   Ruleset.prototype.type = 'Ruleset';
   Ruleset.prototype.isRuleset = true;
 
-  var AtRule =
-  /*#__PURE__*/
-  function (_Node) {
+  var AtRule = /*#__PURE__*/function (_Node) {
     _inherits(AtRule, _Node);
 
     function AtRule(name, value, rules, index, currentFileInfo, debugInfo, isRooted, visibilityInfo) {
@@ -3645,9 +3645,7 @@
 
   AtRule.prototype.type = 'AtRule';
 
-  var DetachedRuleset =
-  /*#__PURE__*/
-  function (_Node) {
+  var DetachedRuleset = /*#__PURE__*/function (_Node) {
     _inherits(DetachedRuleset, _Node);
 
     function DetachedRuleset(ruleset, frames) {
@@ -3688,9 +3686,7 @@
   DetachedRuleset.prototype.type = 'DetachedRuleset';
   DetachedRuleset.prototype.evalFirst = true;
 
-  var Unit =
-  /*#__PURE__*/
-  function (_Node) {
+  var Unit = /*#__PURE__*/function (_Node) {
     _inherits(Unit, _Node);
 
     function Unit(numerator, denominator, backupUnit) {
@@ -3855,9 +3851,7 @@
   // A number with a unit
   //
 
-  var Dimension =
-  /*#__PURE__*/
-  function (_Node) {
+  var Dimension = /*#__PURE__*/function (_Node) {
     _inherits(Dimension, _Node);
 
     function Dimension(value, unit) {
@@ -4055,9 +4049,7 @@
 
   var MATH$1 = Math$1;
 
-  var Operation =
-  /*#__PURE__*/
-  function (_Node) {
+  var Operation = /*#__PURE__*/function (_Node) {
     _inherits(Operation, _Node);
 
     function Operation(op, operands, isSpaced) {
@@ -4137,9 +4129,7 @@
 
   var MATH$2 = Math$1;
 
-  var Expression =
-  /*#__PURE__*/
-  function (_Node) {
+  var Expression = /*#__PURE__*/function (_Node) {
     _inherits(Expression, _Node);
 
     function Expression(value, noSpacing) {
@@ -4228,9 +4218,7 @@
 
   Expression.prototype.type = 'Expression';
 
-  var functionCaller =
-  /*#__PURE__*/
-  function () {
+  var functionCaller = /*#__PURE__*/function () {
     function functionCaller(name, context, index, currentFileInfo) {
       _classCallCheck(this, functionCaller);
 
@@ -4289,9 +4277,7 @@
   // A function call node.
   //
 
-  var Call =
-  /*#__PURE__*/
-  function (_Node) {
+  var Call = /*#__PURE__*/function (_Node) {
     _inherits(Call, _Node);
 
     function Call(name, args, index, currentFileInfo) {
@@ -4406,9 +4392,7 @@
 
   Call.prototype.type = 'Call';
 
-  var Variable =
-  /*#__PURE__*/
-  function (_Node) {
+  var Variable = /*#__PURE__*/function (_Node) {
     _inherits(Variable, _Node);
 
     function Variable(name, index, currentFileInfo) {
@@ -4493,9 +4477,7 @@
 
   Variable.prototype.type = 'Variable';
 
-  var Property =
-  /*#__PURE__*/
-  function (_Node) {
+  var Property = /*#__PURE__*/function (_Node) {
     _inherits(Property, _Node);
 
     function Property(name, index, currentFileInfo) {
@@ -4583,9 +4565,7 @@
 
   Property.prototype.type = 'Property';
 
-  var Attribute =
-  /*#__PURE__*/
-  function (_Node) {
+  var Attribute = /*#__PURE__*/function (_Node) {
     _inherits(Attribute, _Node);
 
     function Attribute(key, op, value) {
@@ -4629,9 +4609,7 @@
 
   Attribute.prototype.type = 'Attribute';
 
-  var Quoted =
-  /*#__PURE__*/
-  function (_Node) {
+  var Quoted = /*#__PURE__*/function (_Node) {
     _inherits(Quoted, _Node);
 
     function Quoted(str, content, escaped, index, currentFileInfo) {
@@ -4717,9 +4695,7 @@
 
   Quoted.prototype.type = 'Quoted';
 
-  var URL =
-  /*#__PURE__*/
-  function (_Node) {
+  var URL = /*#__PURE__*/function (_Node) {
     _inherits(URL, _Node);
 
     function URL(val, index, currentFileInfo, isEvald) {
@@ -4797,9 +4773,7 @@
     });
   }
 
-  var Media =
-  /*#__PURE__*/
-  function (_AtRule) {
+  var Media = /*#__PURE__*/function (_AtRule) {
     _inherits(Media, _AtRule);
 
     function Media(value, features, index, currentFileInfo, visibilityInfo) {
@@ -4976,9 +4950,7 @@
   // the file has been fetched, and parsed.
   //
 
-  var Import =
-  /*#__PURE__*/
-  function (_Node) {
+  var Import = /*#__PURE__*/function (_Node) {
     _inherits(Import, _Node);
 
     function Import(path, features, options, index, currentFileInfo, visibilityInfo) {
@@ -5171,9 +5143,7 @@
 
   Import.prototype.type = 'Import';
 
-  var JsEvalNode =
-  /*#__PURE__*/
-  function (_Node) {
+  var JsEvalNode = /*#__PURE__*/function (_Node) {
     _inherits(JsEvalNode, _Node);
 
     function JsEvalNode() {
@@ -5253,9 +5223,7 @@
     return JsEvalNode;
   }(Node);
 
-  var JavaScript =
-  /*#__PURE__*/
-  function (_JsEvalNode) {
+  var JavaScript = /*#__PURE__*/function (_JsEvalNode) {
     _inherits(JavaScript, _JsEvalNode);
 
     function JavaScript(string, escaped, index, currentFileInfo) {
@@ -5295,9 +5263,7 @@
 
   JavaScript.prototype.type = 'JavaScript';
 
-  var Assignment =
-  /*#__PURE__*/
-  function (_Node) {
+  var Assignment = /*#__PURE__*/function (_Node) {
     _inherits(Assignment, _Node);
 
     function Assignment(key, val) {
@@ -5343,9 +5309,7 @@
 
   Assignment.prototype.type = 'Assignment';
 
-  var Condition =
-  /*#__PURE__*/
-  function (_Node) {
+  var Condition = /*#__PURE__*/function (_Node) {
     _inherits(Condition, _Node);
 
     function Condition(op, l, r, i, negate) {
@@ -5406,9 +5370,7 @@
 
   Condition.prototype.type = 'Condition';
 
-  var UnicodeDescriptor =
-  /*#__PURE__*/
-  function (_Node) {
+  var UnicodeDescriptor = /*#__PURE__*/function (_Node) {
     _inherits(UnicodeDescriptor, _Node);
 
     function UnicodeDescriptor(value) {
@@ -5426,9 +5388,7 @@
 
   UnicodeDescriptor.prototype.type = 'UnicodeDescriptor';
 
-  var Negative =
-  /*#__PURE__*/
-  function (_Node) {
+  var Negative = /*#__PURE__*/function (_Node) {
     _inherits(Negative, _Node);
 
     function Negative(node) {
@@ -5463,9 +5423,7 @@
 
   Negative.prototype.type = 'Negative';
 
-  var Extend =
-  /*#__PURE__*/
-  function (_Node) {
+  var Extend = /*#__PURE__*/function (_Node) {
     _inherits(Extend, _Node);
 
     function Extend(selector, option, index, currentFileInfo, visibilityInfo) {
@@ -5547,9 +5505,7 @@
   Extend.next_id = 0;
   Extend.prototype.type = 'Extend';
 
-  var VariableCall =
-  /*#__PURE__*/
-  function (_Node) {
+  var VariableCall = /*#__PURE__*/function (_Node) {
     _inherits(VariableCall, _Node);
 
     function VariableCall(variable, index, currentFileInfo) {
@@ -5601,9 +5557,7 @@
 
   VariableCall.prototype.type = 'VariableCall';
 
-  var NamespaceValue =
-  /*#__PURE__*/
-  function (_Node) {
+  var NamespaceValue = /*#__PURE__*/function (_Node) {
     _inherits(NamespaceValue, _Node);
 
     function NamespaceValue(ruleCall, lookups, index, fileInfo) {
@@ -5700,9 +5654,7 @@
 
   NamespaceValue.prototype.type = 'NamespaceValue';
 
-  var Definition =
-  /*#__PURE__*/
-  function (_Ruleset) {
+  var Definition = /*#__PURE__*/function (_Ruleset) {
     _inherits(Definition, _Ruleset);
 
     function Definition(name, params, rules, condition, variadic, frames, visibilityInfo) {
@@ -5959,9 +5911,7 @@
   Definition.prototype.type = 'MixinDefinition';
   Definition.prototype.evalFirst = true;
 
-  var MixinCall =
-  /*#__PURE__*/
-  function (_Node) {
+  var MixinCall = /*#__PURE__*/function (_Node) {
     _inherits(MixinCall, _Node);
 
     function MixinCall(elements, args, index, currentFileInfo, important) {
@@ -6306,9 +6256,7 @@
     _listeners: []
   };
 
-  var environment =
-  /*#__PURE__*/
-  function () {
+  var environment = /*#__PURE__*/function () {
     function environment(externalEnvironment, fileManagers) {
       _classCallCheck(this, environment);
 
@@ -6372,9 +6320,7 @@
     return environment;
   }();
 
-  var AbstractFileManager =
-  /*#__PURE__*/
-  function () {
+  var AbstractFileManager = /*#__PURE__*/function () {
     function AbstractFileManager() {
       _classCallCheck(this, AbstractFileManager);
     }
@@ -6534,9 +6480,7 @@
     return AbstractFileManager;
   }();
 
-  var AbstractPluginLoader =
-  /*#__PURE__*/
-  function () {
+  var AbstractPluginLoader = /*#__PURE__*/function () {
     function AbstractPluginLoader() {
       _classCallCheck(this, AbstractPluginLoader);
 
@@ -6776,9 +6720,7 @@
     return ticker;
   }
 
-  var Visitor =
-  /*#__PURE__*/
-  function () {
+  var Visitor = /*#__PURE__*/function () {
     function Visitor(implementation) {
       _classCallCheck(this, Visitor);
 
@@ -6936,9 +6878,7 @@
     return Visitor;
   }();
 
-  var ImportSequencer =
-  /*#__PURE__*/
-  function () {
+  var ImportSequencer = /*#__PURE__*/function () {
     function ImportSequencer(onSequencerEmpty) {
       _classCallCheck(this, ImportSequencer);
 
@@ -7205,9 +7145,7 @@
     }
   };
 
-  var SetTreeVisibilityVisitor =
-  /*#__PURE__*/
-  function () {
+  var SetTreeVisibilityVisitor = /*#__PURE__*/function () {
     function SetTreeVisibilityVisitor(visible) {
       _classCallCheck(this, SetTreeVisibilityVisitor);
 
@@ -7266,9 +7204,7 @@
 
   /* jshint loopfunc:true */
 
-  var ExtendFinderVisitor =
-  /*#__PURE__*/
-  function () {
+  var ExtendFinderVisitor = /*#__PURE__*/function () {
     function ExtendFinderVisitor() {
       _classCallCheck(this, ExtendFinderVisitor);
 
@@ -7383,9 +7319,7 @@
     return ExtendFinderVisitor;
   }();
 
-  var ProcessExtendsVisitor =
-  /*#__PURE__*/
-  function () {
+  var ProcessExtendsVisitor = /*#__PURE__*/function () {
     function ProcessExtendsVisitor() {
       _classCallCheck(this, ProcessExtendsVisitor);
 
@@ -7810,9 +7744,7 @@
     return ProcessExtendsVisitor;
   }();
 
-  var JoinSelectorVisitor =
-  /*#__PURE__*/
-  function () {
+  var JoinSelectorVisitor = /*#__PURE__*/function () {
     function JoinSelectorVisitor() {
       _classCallCheck(this, JoinSelectorVisitor);
 
@@ -7889,9 +7821,7 @@
     return JoinSelectorVisitor;
   }();
 
-  var CSSVisitorUtils =
-  /*#__PURE__*/
-  function () {
+  var CSSVisitorUtils = /*#__PURE__*/function () {
     function CSSVisitorUtils(context) {
       _classCallCheck(this, CSSVisitorUtils);
 
@@ -11572,20 +11502,6 @@
     },
     hsla: function hsla(h, s, l, a) {
       try {
-        var hue = function hue(h) {
-          h = h < 0 ? h + 1 : h > 1 ? h - 1 : h;
-
-          if (h * 6 < 1) {
-            return m1 + (m2 - m1) * h * 6;
-          } else if (h * 2 < 1) {
-            return m2;
-          } else if (h * 3 < 2) {
-            return m1 + (m2 - m1) * (2 / 3 - h) * 6;
-          } else {
-            return m1;
-          }
-        };
-
         if (h instanceof Color) {
           if (s) {
             a = number(s);
@@ -11598,6 +11514,21 @@
 
         var m1;
         var m2;
+
+        function hue(h) {
+          h = h < 0 ? h + 1 : h > 1 ? h - 1 : h;
+
+          if (h * 6 < 1) {
+            return m1 + (m2 - m1) * h * 6;
+          } else if (h * 2 < 1) {
+            return m2;
+          } else if (h * 3 < 2) {
+            return m1 + (m2 - m1) * (2 / 3 - h) * 6;
+          } else {
+            return m1;
+          }
+        }
+
         h = number(h) % 360 / 360;
         s = clamp$1(number(s));
         l = clamp$1(number(l));
@@ -12536,9 +12467,7 @@
   });
 
   var sourceMapOutput = (function (environment) {
-    var SourceMapOutput =
-    /*#__PURE__*/
-    function () {
+    var SourceMapOutput = /*#__PURE__*/function () {
       function SourceMapOutput(options) {
         _classCallCheck(this, SourceMapOutput);
 
@@ -12729,9 +12658,7 @@
   });
 
   var sourceMapBuilder = (function (SourceMapOutput, environment) {
-    var SourceMapBuilder =
-    /*#__PURE__*/
-    function () {
+    var SourceMapBuilder = /*#__PURE__*/function () {
       function SourceMapBuilder(options) {
         _classCallCheck(this, SourceMapBuilder);
 
@@ -12918,9 +12845,7 @@
   });
 
   var parseTree = (function (SourceMapBuilder) {
-    var ParseTree =
-    /*#__PURE__*/
-    function () {
+    var ParseTree = /*#__PURE__*/function () {
       function ParseTree(root, imports) {
         _classCallCheck(this, ParseTree);
 
@@ -13008,9 +12933,7 @@
     //  'rootFilename' - filename of the base file
     //  'entryPath' - absolute path to the entry file
     //  'reference' - whether the file should not be output and only output parts that are referenced
-    var ImportManager =
-    /*#__PURE__*/
-    function () {
+    var ImportManager = /*#__PURE__*/function () {
       function ImportManager(less, context, rootFileInfo) {
         _classCallCheck(this, ImportManager);
 
@@ -13223,9 +13146,7 @@
   /**
    * Plugin Manager
    */
-  var PluginManager =
-  /*#__PURE__*/
-  function () {
+  var PluginManager = /*#__PURE__*/function () {
     function PluginManager(less) {
       _classCallCheck(this, PluginManager);
 
@@ -13597,9 +13518,7 @@
   var logger$1;
   var fileCache = {}; // TODOS - move log somewhere. pathDiff and doing something similar in node. use pathDiff in the other browser file for the initial load
 
-  var FileManager =
-  /*#__PURE__*/
-  function (_AbstractFileManager) {
+  var FileManager = /*#__PURE__*/function (_AbstractFileManager) {
     _inherits(FileManager, _AbstractFileManager);
 
     function FileManager() {
@@ -13755,9 +13674,7 @@
    * Browser Plugin Loader
    */
 
-  var PluginLoader =
-  /*#__PURE__*/
-  function (_AbstractPluginLoader) {
+  var PluginLoader = /*#__PURE__*/function (_AbstractPluginLoader) {
     _inherits(PluginLoader, _AbstractPluginLoader);
 
     function PluginLoader(less) {
